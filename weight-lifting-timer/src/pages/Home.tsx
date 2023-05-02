@@ -10,20 +10,27 @@ import {
   IonToolbar,
 } from "@ionic/react";
 
+let repTimerBuffer = 0;
+let setTimerBuffer = 0;
+let recoveryTimerBuffer = 0;
+let repsTimerBuffer = 0;
+let setsTimerBuffer = 0;
+let howMuchSteps = 0;
+let exercises = 0;
+let sets = 0;
+let reps = 0;
+let effortTime = 0;
+let recoveryTime = 0;
+let restFlag = false
+
 const Home: React.FC = () => {
   const [isOnPlay, setIsOnPlay] = useState(false);
-  const [isOnRest, setIsOnRest] = useState(true);
-  const [effortTime, setEffortTime] = useState(0);
-  const [recoveryTime, setRecoveryTime] = useState(0);
-  const [reps, setReps] = useState(0);
-  const [sets, setSets] = useState(0);
-  const [exercises, setExercises] = useState(0);
+  const [isOnRest, setIsOnRest] = useState(false);
 
   const [repTimer, setRepTimer] = useState(0);
   const [setsTimer, setSetsTimer] = useState(0);
   const [exerciceTimer, setExerciceTimer] = useState(0);
-  const [recoveryTimer , setRecoveryTimer] = useState(0);
-
+  const [recoveryTimer, setRecoveryTimer] = useState(0);
 
   const effortTimeMin = useRef<HTMLIonInputElement | null>(null);
   const effortTimeSec = useRef<HTMLIonInputElement | null>(null);
@@ -41,50 +48,70 @@ const Home: React.FC = () => {
       recoveryTimeSec.current === null ||
       repsInput.current === null ||
       setsInput.current === null ||
-      exercisesInput.current === null 
-    ) return;
+      exercisesInput.current === null
+    )
+      return;
     if (
-      typeof effortTimeMin.current.value !== "number" ||
-      typeof effortTimeSec.current.value !== "number" ||
-      typeof recoveryTimeMin.current.value !== "number" ||
-      typeof recoveryTimeSec.current.value !== "number" ||
-      typeof repsInput.current.value !== "number" ||
-      typeof setsInput.current.value !== "number" ||
-      typeof exercisesInput.current.value !== "number" 
-    ) return;
-    const effortTimeCalc =
-      (effortTimeMin.current.value * 60 + effortTimeSec.current.value) *1000;
-    const restTimeCalc = (recoveryTimeMin.current.value * 60 + recoveryTimeMin.current.value)*1000
-    setEffortTime(effortTimeCalc)
-    setRecoveryTime(restTimeCalc)
-    setReps(repsInput.current.value)
-    setSets(setsInput.current.value)
-    setExercises(exercisesInput.current.value)
+      typeof effortTimeMin.current.value !== "string" ||
+      typeof effortTimeSec.current.value !== "string" ||
+      typeof recoveryTimeMin.current.value !== "string" ||
+      typeof recoveryTimeSec.current.value !== "string" ||
+      typeof repsInput.current.value !== "string" ||
+      typeof setsInput.current.value !== "string" ||
+      typeof exercisesInput.current.value !== "string"
+    )
+      return;
+
+    effortTime =
+      (parseInt(effortTimeMin.current.value) * 60 +
+        parseInt(effortTimeSec.current.value)) *
+      1000;
+    recoveryTime =
+      (parseInt(recoveryTimeMin.current.value) * 60 +
+        parseInt(recoveryTimeSec.current.value)) *
+      1000;
+    reps = parseInt(repsInput.current.value);
+    sets = parseInt(setsInput.current.value);
+    exercises = parseInt(exercisesInput.current.value);
     setIsOnPlay(true);
-    timeLoop()
+    timeLoop();
   };
 
   const timeLoop = () => {
-    setInterval(() => {
-      if (!isOnRest){
-      setRepTimer(repTimer + 10 < exerciceTimer/reps ? repTimer +10 : 0)
-      setSetsTimer(setsTimer + 10 < exerciceTimer ? setsTimer +10 : 0)
+    const intervalId = setInterval(() => {
+      if (howMuchSteps < sets) {
+        if (!restFlag) {
+          repTimerBuffer =
+            repTimerBuffer + 100 < effortTime / reps ? repTimerBuffer + 100 : 0;
+          setTimerBuffer =
+            setTimerBuffer + 100 < effortTime ? setTimerBuffer + 100 : 0;
+          setRepTimer(() => repTimerBuffer / 1000);
+          setSetsTimer(() => setTimerBuffer / 1000);
 
-      if (setsTimer + 10 < exerciceTimer){
-        setIsOnRest(true)
+          if (setTimerBuffer === 0) {
+           setIsOnRest(true);
+           restFlag=true
+          }
+        } else{
+          if (recoveryTimerBuffer + 100 < recoveryTime) {
+            recoveryTimerBuffer = recoveryTimerBuffer + 100;
+            setRecoveryTimer(recoveryTimerBuffer / 1000);
+          } else {
+            recoveryTimerBuffer = 0;
+            setRecoveryTimer(recoveryTimerBuffer);
+            setIsOnRest(false);
+            restFlag= false
+            howMuchSteps++
+          }
+        }
+      } else {
+        console.log("finish");
       }
-      if(isOnRest) {
-        recoveryTimer +10 < recoveryTime ?
-        setRecoveryTimer(  recoveryTimer +10)
-        : () => {
-          setRecoveryTimer(  recoveryTimer +10)
-          setIsOnRest(false)
-        } 
-      
-      }
+    }, 100);
 
-    }, 10);
-  }
+    // Clear the interval when necessary
+    //clearInterval(intervalId);
+  };
 
   const pause = () => {};
 
@@ -110,19 +137,17 @@ const Home: React.FC = () => {
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="1"
+                        value="0"
                         maxlength={2}
                         ref={effortTimeMin}
-                        type="number"
                       ></IonInput>
                     </div>
                     m
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="30"
+                        value="1"
                         maxlength={2}
-                        type="number"
                         ref={effortTimeSec}
                       ></IonInput>
                     </div>
@@ -135,19 +160,17 @@ const Home: React.FC = () => {
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="1"
+                        value="0"
                         maxlength={2}
                         ref={recoveryTimeMin}
-                        type="number"
                       ></IonInput>
                     </div>
                     m
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="30"
+                        value="1"
                         maxlength={2}
-                        type="number"
                         ref={recoveryTimeSec}
                       ></IonInput>
                     </div>
@@ -163,10 +186,9 @@ const Home: React.FC = () => {
                           value="10"
                           maxlength={2}
                           ref={repsInput}
-                          type="number"
                         ></IonInput>
                       </div>
-                      repsInput
+                      reps
                     </div>
                   </div>
                   <div className="timer-card half">
@@ -176,11 +198,10 @@ const Home: React.FC = () => {
                           className="small-input"
                           value="4"
                           maxlength={2}
-                          type="number"
                           ref={setsInput}
                         ></IonInput>
                       </div>
-                      setsInput
+                      sets
                     </div>
                   </div>
                 </div>
@@ -189,7 +210,7 @@ const Home: React.FC = () => {
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="5"                                                                                                                                                                                 
+                        value="5"
                         maxlength={2}
                         ref={exercisesInput}
                       ></IonInput>
