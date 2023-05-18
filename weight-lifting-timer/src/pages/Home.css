@@ -11,6 +11,7 @@
     margin-bottom: 10px;
     width : 80vw ;
     align-items: center;
+    padding-left: 10px ;
 }
 .half{
     width : 39vw ;
@@ -30,7 +31,7 @@
 }
 .small-input{
     width : 25px;
-    
+    text-align: center !important;
 }
 
 .btn{
@@ -51,4 +52,26 @@ background-color: limegreen;
 }
 .stop-btn{
     background-color: coral;
+}
+.fillable-timer{
+  position: relative;
+  background-color: gainsboro;
+border-radius: 8px;
+width: 80vw;
+height:25px;
+text-align: center;
+z-index:0;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.timer-fill{
+    z-index: 5;
+    position: absolute;
+    background-color: aquamarine;
+    border-radius: 8px;
+    height:100%;
+}
+.timer-text {
+    z-index : 10;
 }

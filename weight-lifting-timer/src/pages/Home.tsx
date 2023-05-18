@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Home.css";
 import {
   IonContent,
@@ -10,9 +10,9 @@ import {
   IonToolbar,
 } from "@ionic/react";
 
-let repTimerBuffer = 0;
-let setTimerBuffer = 0;
-let recoveryTimerBuffer = 0;
+let repTimerBuffer = 10;
+let setTimerBuffer = 10;
+let recoveryTimerBuffer = 10;
 let repsTimerBuffer = 0;
 let setsTimerBuffer = 0;
 let howMuchSteps = 0;
@@ -21,7 +21,7 @@ let sets = 0;
 let reps = 0;
 let effortTime = 0;
 let recoveryTime = 0;
-let restFlag = false
+let restFlag = false;
 
 const Home: React.FC = () => {
   const [isOnPlay, setIsOnPlay] = useState(false);
@@ -39,6 +39,9 @@ const Home: React.FC = () => {
   const repsInput = useRef<HTMLIonInputElement | null>(null);
   const setsInput = useRef<HTMLIonInputElement | null>(null);
   const exercisesInput = useRef<HTMLIonInputElement | null>(null);
+  const fillableRepTimer = useRef<HTMLDivElement | null>(null);
+  const fillableSetsTimer = useRef<HTMLDivElement | null>(null);
+  const fillableRecoveryTimer = useRef<HTMLDivElement | null>(null);
 
   const play = () => {
     if (
@@ -82,32 +85,32 @@ const Home: React.FC = () => {
       if (howMuchSteps < sets) {
         if (!restFlag) {
           repTimerBuffer =
-            repTimerBuffer + 100 < effortTime / reps ? repTimerBuffer + 100 : 0;
+            repTimerBuffer < (effortTime / reps) ? repTimerBuffer + 10 : 10;
           setTimerBuffer =
-            setTimerBuffer + 100 < effortTime ? setTimerBuffer + 100 : 0;
+            setTimerBuffer < effortTime  ? setTimerBuffer + 10 : 10;
           setRepTimer(() => repTimerBuffer / 1000);
           setSetsTimer(() => setTimerBuffer / 1000);
 
-          if (setTimerBuffer === 0) {
-           setIsOnRest(true);
-           restFlag=true
+          if (setTimerBuffer === 10 ) {
+            setIsOnRest(true);
+            restFlag = true;
           }
-        } else{
-          if (recoveryTimerBuffer + 100 < recoveryTime) {
-            recoveryTimerBuffer = recoveryTimerBuffer + 100;
+        } else {
+          if (recoveryTimerBuffer < recoveryTime) {
+            recoveryTimerBuffer = recoveryTimerBuffer + 10;
             setRecoveryTimer(recoveryTimerBuffer / 1000);
           } else {
-            recoveryTimerBuffer = 0;
+            recoveryTimerBuffer = 10;
             setRecoveryTimer(recoveryTimerBuffer);
             setIsOnRest(false);
-            restFlag= false
-            howMuchSteps++
+            restFlag = false;
+            howMuchSteps++;
           }
         }
       } else {
         console.log("finish");
       }
-    }, 100);
+    }, 10);
 
     // Clear the interval when necessary
     //clearInterval(intervalId);
@@ -118,14 +121,35 @@ const Home: React.FC = () => {
   const stop = () => {
     setIsOnPlay(false);
   };
+
+  useEffect(() => {
+    if (fillableRepTimer.current === null) return;
+    repTimer >= 0
+      ? (fillableRepTimer.current.style.width = `${
+          (repTimer * 100000) / (effortTime / reps)
+        }%`)
+      : (fillableRepTimer.current.style.width = `0%`);
+  }, [repTimer]);
+  useEffect(() => {
+    if (fillableSetsTimer.current === null) return;
+    setsTimer >= 0
+      ? (fillableSetsTimer.current.style.width = `${
+          (setsTimer * 100000) / effortTime
+        }%`)
+      : (fillableSetsTimer.current.style.width = `0%`);
+  }, [setsTimer]);
+  useEffect(() => {
+    if (fillableRecoveryTimer.current === null) return;
+    recoveryTimer >= 0
+      ? (fillableRecoveryTimer.current.style.width = `${
+          (recoveryTimer * 100000) / recoveryTime
+        }%`)
+      : (fillableRecoveryTimer.current.style.width = `0%`);
+  }, [recoveryTimer]);
+
   return (
     <IonPage>
       <IonContent fullscreen>
-        <IonHeader collapse="condense">
-          <IonToolbar>
-            <IonTitle size="large">Blank</IonTitle>
-          </IonToolbar>
-        </IonHeader>
         <div className="main">
           {!isOnPlay ? (
             <div>
@@ -146,7 +170,7 @@ const Home: React.FC = () => {
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="1"
+                        value="10"
                         maxlength={2}
                         ref={effortTimeSec}
                       ></IonInput>
@@ -169,7 +193,7 @@ const Home: React.FC = () => {
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="1"
+                        value="3"
                         maxlength={2}
                         ref={recoveryTimeSec}
                       ></IonInput>
@@ -183,7 +207,7 @@ const Home: React.FC = () => {
                       <div className="ion-input-content">
                         <IonInput
                           className="small-input"
-                          value="10"
+                          value="5"
                           maxlength={2}
                           ref={repsInput}
                         ></IonInput>
@@ -233,12 +257,24 @@ const Home: React.FC = () => {
               </div>
               {!isOnRest ? (
                 <div>
-                  <div>tempo{repTimer}</div>
-                  <div>serie{setsTimer}</div>
+                  <div className="fillable-timer">
+                    <div className="timer-fill" ref={fillableRepTimer}></div>
+                    <div className="timer-text">tempo{repTimer}</div>
+                  </div>
+                  <div className="fillable-timer">
+                    <div className="timer-fill" ref={fillableSetsTimer}></div>
+                    <div className="timer-text">serie{setsTimer}</div>
+                  </div>
                 </div>
               ) : (
                 <div>
-                  <div>rest{recoveryTimer}</div>
+                  <div className="fillable-timer">
+                    <div
+                      className="timer-fill"
+                      ref={fillableRecoveryTimer}
+                    ></div>
+                    <div className="timer-text">rest{recoveryTimer}</div>
+                  </div>
                 </div>
               )}
             </div>
