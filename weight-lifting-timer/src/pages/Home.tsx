@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import "./Home.css";
+import { useEffect, useRef, useState } from "react"
+import "./Home.css"
 import {
   IonContent,
   IonHeader,
@@ -8,40 +8,50 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
-} from "@ionic/react";
+} from "@ionic/react"
+import repHit from "../assets/mixkit-forceful-impact-item-3174-[AudioTrimmer.com].wav"
+import setEnd from "../assets/mixkit-achievement-bell-600.wav"
+import restTimeEnd from  "../assets/mixkit-notification-bike-bell-594.wav"
+import exerciceEnd from '../assets/mixkit-game-flute-bonus-2313.wav'
 
-let repTimerBuffer = 10;
-let setTimerBuffer = 10;
-let recoveryTimerBuffer = 10;
-let repsTimerBuffer = 0;
-let setsTimerBuffer = 0;
-let howMuchSteps = 0;
-let exercises = 0;
-let sets = 0;
-let reps = 0;
-let effortTime = 0;
-let recoveryTime = 0;
-let restFlag = false;
+let repHitAudio = new Audio(repHit)
+let setEndAudio = new Audio(setEnd)
+let restTimeEndAudio = new Audio(restTimeEnd)
+let exerciceEndAudio = new Audio(exerciceEnd)
+let repTimerBuffer = 10
+let setTimerBuffer = 10
+let recoveryTimerBuffer = 10
+let repsTimerBuffer = 0
+let setsTimerBuffer = 0
+let howMuchSteps = 0
+let exercises = 0
+let sets = 0
+let reps = 0
+let effortTime = 0
+let recoveryTime = 0
+let restFlag = false
+let isOnplayBuffer = false
 
 const Home: React.FC = () => {
-  const [isOnPlay, setIsOnPlay] = useState(false);
-  const [isOnRest, setIsOnRest] = useState(false);
+  const [isOnPlay, setIsOnPlay] = useState(false)
+  const [isOnRest, setIsOnRest] = useState(false)
+const [isEnded , setIsEnded] = useState(false)
 
-  const [repTimer, setRepTimer] = useState(0);
-  const [setsTimer, setSetsTimer] = useState(0);
-  const [exerciceTimer, setExerciceTimer] = useState(0);
-  const [recoveryTimer, setRecoveryTimer] = useState(0);
+  const [repTimer, setRepTimer] = useState(0)
+  const [setsTimer, setSetsTimer] = useState(0)
+  const [exerciceTimer, setExerciceTimer] = useState(0)
+  const [recoveryTimer, setRecoveryTimer] = useState(0)
 
-  const effortTimeMin = useRef<HTMLIonInputElement | null>(null);
-  const effortTimeSec = useRef<HTMLIonInputElement | null>(null);
-  const recoveryTimeMin = useRef<HTMLIonInputElement | null>(null);
-  const recoveryTimeSec = useRef<HTMLIonInputElement | null>(null);
-  const repsInput = useRef<HTMLIonInputElement | null>(null);
-  const setsInput = useRef<HTMLIonInputElement | null>(null);
-  const exercisesInput = useRef<HTMLIonInputElement | null>(null);
-  const fillableRepTimer = useRef<HTMLDivElement | null>(null);
-  const fillableSetsTimer = useRef<HTMLDivElement | null>(null);
-  const fillableRecoveryTimer = useRef<HTMLDivElement | null>(null);
+  const effortTimeMin = useRef<HTMLIonInputElement | null>(null)
+  const effortTimeSec = useRef<HTMLIonInputElement | null>(null)
+  const recoveryTimeMin = useRef<HTMLIonInputElement | null>(null)
+  const recoveryTimeSec = useRef<HTMLIonInputElement | null>(null)
+  const repsInput = useRef<HTMLIonInputElement | null>(null)
+  const setsInput = useRef<HTMLIonInputElement | null>(null)
+  const exercisesInput = useRef<HTMLIonInputElement | null>(null)
+  const fillableRepTimer = useRef<HTMLDivElement | null>(null)
+  const fillableSetsTimer = useRef<HTMLDivElement | null>(null)
+  const fillableRecoveryTimer = useRef<HTMLDivElement | null>(null)
 
   const play = () => {
     if (
@@ -68,47 +78,68 @@ const Home: React.FC = () => {
     effortTime =
       (parseInt(effortTimeMin.current.value) * 60 +
         parseInt(effortTimeSec.current.value)) *
-      1000;
+      1000
     recoveryTime =
       (parseInt(recoveryTimeMin.current.value) * 60 +
         parseInt(recoveryTimeSec.current.value)) *
-      1000;
-    reps = parseInt(repsInput.current.value);
-    sets = parseInt(setsInput.current.value);
-    exercises = parseInt(exercisesInput.current.value);
+      1000
+    reps = parseInt(repsInput.current.value)
+    sets = parseInt(setsInput.current.value)
+    exercises = parseInt(exercisesInput.current.value)
+    setIsEnded(false)
     setIsOnPlay(true);
+    isOnplayBuffer= true
+    repTimerBuffer = 10
+setTimerBuffer = 10
+ recoveryTimerBuffer = 10
+  howMuchSteps = 0
+
     timeLoop();
   };
 
   const timeLoop = () => {
+
     const intervalId = setInterval(() => {
-      if (howMuchSteps < sets) {
+      if (!isOnplayBuffer) clearInterval(intervalId)
+      if (howMuchSteps < sets ) {
         if (!restFlag) {
           repTimerBuffer =
-            repTimerBuffer < (effortTime / reps) ? repTimerBuffer + 10 : 10;
-          setTimerBuffer =
-            setTimerBuffer < effortTime  ? setTimerBuffer + 10 : 10;
-          setRepTimer(() => repTimerBuffer / 1000);
-          setSetsTimer(() => setTimerBuffer / 1000);
+            repTimerBuffer < effortTime / reps ? repTimerBuffer + 10 : 10
 
-          if (setTimerBuffer === 10 ) {
-            setIsOnRest(true);
-            restFlag = true;
+          setTimerBuffer =
+            setTimerBuffer < effortTime ? setTimerBuffer + 10 : 10
+
+          setRepTimer(() => repTimerBuffer / 1000)
+          setSetsTimer(() => setTimerBuffer / 1000)
+          repTimerBuffer === 10 && setTimerBuffer !== 10
+            ? repHitAudio.play()
+            : null;
+          if (setTimerBuffer === 10 && howMuchSteps < sets -1) {
+            setIsOnRest(true)
+             setEndAudio.play()
+            restFlag = true
+          }else if (setTimerBuffer === 10 && howMuchSteps === sets -1){
+            howMuchSteps++
           }
         } else {
           if (recoveryTimerBuffer < recoveryTime) {
-            recoveryTimerBuffer = recoveryTimerBuffer + 10;
-            setRecoveryTimer(recoveryTimerBuffer / 1000);
+            recoveryTimerBuffer = recoveryTimerBuffer + 10
+            setRecoveryTimer(recoveryTimerBuffer / 1000)
           } else {
-            recoveryTimerBuffer = 10;
-            setRecoveryTimer(recoveryTimerBuffer);
-            setIsOnRest(false);
-            restFlag = false;
-            howMuchSteps++;
+            restTimeEndAudio.play()
+            recoveryTimerBuffer = 10
+            setRecoveryTimer(recoveryTimerBuffer)
+            setIsOnRest(false)
+            restFlag = false
+            howMuchSteps++
           }
         }
       } else {
-        console.log("finish");
+        console.log("finish")
+        exerciceEndAudio.play()
+        setIsEnded(true)
+        setIsOnPlay(false)
+        clearInterval(intervalId)
       }
     }, 10);
 
@@ -119,6 +150,7 @@ const Home: React.FC = () => {
   const pause = () => {};
 
   const stop = () => {
+    isOnplayBuffer = false
     setIsOnPlay(false);
   };
 
@@ -128,7 +160,7 @@ const Home: React.FC = () => {
       ? (fillableRepTimer.current.style.width = `${
           (repTimer * 100000) / (effortTime / reps)
         }%`)
-      : (fillableRepTimer.current.style.width = `0%`);
+      : (fillableRepTimer.current.style.width = `0%`)
   }, [repTimer]);
   useEffect(() => {
     if (fillableSetsTimer.current === null) return;
@@ -136,16 +168,16 @@ const Home: React.FC = () => {
       ? (fillableSetsTimer.current.style.width = `${
           (setsTimer * 100000) / effortTime
         }%`)
-      : (fillableSetsTimer.current.style.width = `0%`);
+      : (fillableSetsTimer.current.style.width = `0%`)
   }, [setsTimer]);
   useEffect(() => {
-    if (fillableRecoveryTimer.current === null) return;
+    if (fillableRecoveryTimer.current === null) return
     recoveryTimer >= 0
       ? (fillableRecoveryTimer.current.style.width = `${
           (recoveryTimer * 100000) / recoveryTime
         }%`)
-      : (fillableRecoveryTimer.current.style.width = `0%`);
-  }, [recoveryTimer]);
+      : (fillableRecoveryTimer.current.style.width = `0%`)
+  }, [recoveryTimer])
 
   return (
     <IonPage>
@@ -170,7 +202,7 @@ const Home: React.FC = () => {
                     <div className="ion-input-content">
                       <IonInput
                         className="small-input"
-                        value="10"
+                        value="5"
                         maxlength={2}
                         ref={effortTimeSec}
                       ></IonInput>
@@ -254,8 +286,8 @@ const Home: React.FC = () => {
               </div>
               <div className="stop-btn btn" onClick={stop}>
                 stop
-              </div>
-              {!isOnRest ? (
+              </div>{ !isEnded ?
+              !isOnRest  ? (
                 <div>
                   <div className="fillable-timer">
                     <div className="timer-fill" ref={fillableRepTimer}></div>
@@ -276,13 +308,13 @@ const Home: React.FC = () => {
                     <div className="timer-text">rest{recoveryTimer}</div>
                   </div>
                 </div>
-              )}
+              ): null}
             </div>
           )}
         </div>
       </IonContent>
     </IonPage>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home
